@@ -9,7 +9,9 @@ class YTDLPDriver(IDriver):
     downloader = YoutubeDL()
     info = downloader.extract_info(url, download=False)
 
-    formats = []
+    formats = [
+      DownloadFormat(format='default', is_video=True)
+    ]
     exists = []
     for f in info['formats']:
       if not f.get('format_note'):
@@ -54,6 +56,9 @@ class YTDLPDriver(IDriver):
       options['format'] = "bestaudio"
       options['outtmpl'] = f"{storage_path}/{name}.{ext}"
     
+    if format.format == 'default':
+      options['format'] = f"bestvideo+bestaudio"
+
     downloader = YoutubeDL(options)    
     downloader.download(url)
     file = Storage().get_file(name)

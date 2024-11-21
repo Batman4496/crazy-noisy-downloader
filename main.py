@@ -1,9 +1,10 @@
+from dotenv import load_dotenv
+load_dotenv() # load all the variables from the env file
+
 import discord
 import os # default module
-from dotenv import load_dotenv
 from constants import COGS
 
-load_dotenv() # load all the variables from the env file
 
 intents = discord.Intents()
 intents.message_content = True
