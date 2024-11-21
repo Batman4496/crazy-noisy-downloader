@@ -4,11 +4,11 @@ from lib.classes import DownloadFile, DownloadInfo, DownloadFormat
 class IDriver(ABC):
 
   @abstractmethod
-  def get_info(self, url: str) -> DownloadInfo:
+  async def get_info(self, url: str) -> DownloadInfo:
     raise NotImplementedError
   
   @abstractmethod
-  def download(
+  async def download(
     self, 
     name: str,
     url: str,

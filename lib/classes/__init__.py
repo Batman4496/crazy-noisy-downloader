@@ -17,6 +17,7 @@ class DownloadFile:
 
 @dataclass
 class DownloadInfo:
+  id: str
   title: str
   description: str
   url: str

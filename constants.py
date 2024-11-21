@@ -14,5 +14,5 @@ COGS = [
   # 'utils.start'
 ]
 
-VIDEO_FORMATS = [ '144', '240', '480', '720', '1080', '1440' ]
+VIDEO_FORMATS = [ '144', '160', '240', '480', '720', '1080', '1440' ]
 AUDIO_FORMATS = [ 'flac', 'wav', 'mp3' ]

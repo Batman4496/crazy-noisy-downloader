@@ -1,43 +1,43 @@
-from yt_dlp import YoutubeDL
+from lib.helpers import run_shell_command
 from lib.classes.idriver import IDriver
 from lib.classes import DownloadFile, DownloadInfo, DownloadFormat
 from constants import VIDEO_FORMATS, AUDIO_FORMATS, STORAGE_PATH
 from lib.classes.storage import Storage
+import json
 
-class YTDLPDriver(IDriver):
-  
+class TwitchDriver(IDriver):
+
   async def get_info(self, url):
-    downloader = YoutubeDL()
-    info = downloader.extract_info(url, download=False)
+    status, out, err = await run_shell_command(f"twitch-dl info {url} --json")
 
-    formats = [
-      DownloadFormat(format='default', is_video=True)
-    ]
+    if status == 1:
+      raise Exception(err)
+
+    info = json.loads(out)
+
+    formats = []
     exists = []
-    for f in info['formats']:
-      if not f.get('format_note'):
-          continue
+    for playlist in info['playlists']:
       
-      stripped = f.get('format_note')[:-1]
-      if stripped in exists:
+      if playlist.get('video') in exists:
         continue
 
-      if stripped in VIDEO_FORMATS:
-        formats.append(DownloadFormat(is_video=True, format=stripped))
-        exists.append(stripped)
+      if playlist.get('video').split('p')[0] in VIDEO_FORMATS:
+        formats.append(DownloadFormat(is_video=True, format=playlist.get('video')))
+        exists.append(playlist.get('video'))
     
-    for f in AUDIO_FORMATS:
-      formats.append(DownloadFormat(is_audio=True, format=f))
+    for 'audio' in playlist.get('video'):
+      formats.append(DownloadFormat(is_audio=True, format='Audio'))
 
     return DownloadInfo(
       id=info['id'],
       title=info['title'],
-      url=info['original_url'],
-      channel=info['channel'],
+      url=url,
+      channel='',
       views=info['view_count'],
       formats=formats,
-      duration=info['duration'],
-      thumbnail=info['thumbnail'],
+      duration=info['lengthSeconds'],
+      thumbnail='',
       description=info['description']
     )
 
@@ -74,6 +74,5 @@ class YTDLPDriver(IDriver):
 
 
 if __name__ == '__main__':
-  driver = YTDLPDriver()
-  driver.get_info("https://youtu.be/Usa5sTBhloQ?si=TgcbLXubtrzfIaWF")
-  # driver.download()
+  driver = TwitchDriver()
+  info = driver.get_info("https://www.itch.tv/videos/2307xc68771")

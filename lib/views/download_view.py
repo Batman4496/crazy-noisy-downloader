@@ -36,7 +36,7 @@ class DownloadView(ClearableView):
     filename = f"{interaction.user.id}-{self.info.title}"
 
     try:
-      file = self.driver.download(filename, self.info.url, self.selected_format, timestamp_to_seconds(self.start), timestamp_to_seconds(self.end))
+      file = await self.driver.download(filename, self.info.url, self.selected_format, timestamp_to_seconds(self.start), timestamp_to_seconds(self.end))
     except Exception as e:
       return await interaction.message.edit(f"Error downloading **{self.info.title}**...\n```{e}```")
     await interaction.message.edit(content="File Downloaded... Please wait...")
