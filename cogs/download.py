@@ -23,20 +23,15 @@ class Download(commands.Cog):
       default=list(DRIVERS.keys())[0]
     )
   ):
+    await ctx.response.defer()
+    driver = DriverManager().run(driver)
     try:
-      await ctx.response.defer()
-      driver = DriverManager().run()
-      try:
-        info = await driver.get_info(url)
-      except:
-        return await ctx.followup.send(f"{url} not found.")
-      
-      view = DownloadView(driver, info)
-      await ctx.followup.send(embed=view.generate_embed(), view=view.generate_view())
-    
+      info = await driver.get_info(url)
     except Exception as e:
-      await ctx.send(f"An error occured!\n{e}")
-
+      return await ctx.followup.send(f"{url} not found.\n```{e}```")
+    
+    view = DownloadView(driver, info)
+    await ctx.followup.send(embed=view.generate_embed(), view=view.generate_view())
     
 def setup(bot):
   bot.add_cog(Download(bot))

@@ -3,6 +3,7 @@ from lib.classes.idriver import IDriver
 from lib.classes import DownloadFile, DownloadInfo, DownloadFormat
 from constants import VIDEO_FORMATS, AUDIO_FORMATS, STORAGE_PATH
 from lib.classes.storage import Storage
+from lib.helpers import seconds_to_timestamp
 import json
 
 class TwitchDriver(IDriver):
@@ -15,7 +16,9 @@ class TwitchDriver(IDriver):
 
     info = json.loads(out)
 
-    formats = []
+    formats = [
+      DownloadFormat(is_video=True, format='source')
+    ]
     exists = []
     for playlist in info['playlists']:
       
@@ -24,45 +27,46 @@ class TwitchDriver(IDriver):
 
       if playlist.get('video').split('p')[0] in VIDEO_FORMATS:
         formats.append(DownloadFormat(is_video=True, format=playlist.get('video')))
-        exists.append(playlist.get('video'))
     
-    for 'audio' in playlist.get('video'):
-      formats.append(DownloadFormat(is_audio=True, format='Audio'))
+      if 'audio' in playlist.get('video'):
+        formats.append(DownloadFormat(is_audio=True, format='Audio Only'))
 
-    return DownloadInfo(
+      exists.append(playlist.get('video'))
+    
+    downloadInfo = DownloadInfo(
       id=info['id'],
       title=info['title'],
       url=url,
       channel='',
-      views=info['view_count'],
+      views=info['viewCount'],
       formats=formats,
       duration=info['lengthSeconds'],
       thumbnail='',
-      description=info['description']
+      description=info['description'] or 'No description found.'
     )
+
+    return downloadInfo
 
   async def download(self, name, url, format, start = None, end = None, storage_path=None):
     storage_path = storage_path or STORAGE_PATH
+    command = f"twitch-dl download {url}"
     name = name.replace('/', '-')
-    options = {}
-    ext = 'mp4'
-    if start and end:
-      options['download_ranges'] = lambda i, d: [ { 'start_time': start, 'end_time': end }]
 
-    if format.is_video:
-      options['format'] = f"bestvideo[height={format.format}]+bestaudio"
-      options['outtmpl'] = f"{storage_path}/{name}.%(ext)s"
+    if start:
+      command += f" -s {seconds_to_timestamp(start)}"
 
-    if format.is_audio:
-      ext = format.format
-      options['format'] = "bestaudio"
-      options['outtmpl'] = f"{storage_path}/{name}.{ext}"
+    if end:
+      command += f" -e {seconds_to_timestamp(end)}"
     
-    if format.format == 'default':
-      options['format'] = f"bestvideo+bestaudio"
+    
+    command += f" -q {format.format}"
+    command += f' -o "{storage_path}/{name}' + '.{format}"'
 
-    downloader = YoutubeDL(options)    
-    downloader.download(url)
+    status, out, err = await run_shell_command(command)
+    if status == 1:
+      print(err)
+      raise Exception(err)
+
     file = Storage().get_file(name)
 
     return DownloadFile(
