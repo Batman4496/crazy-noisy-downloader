@@ -14,7 +14,7 @@ class FileResponse():
     size = os.path.getsize(file.path) / 1024 / 1024
 
     if (size > 20):
-      self.strategy = GoFileResponse()   
+      self.strategy = GoFileResponse()
     else:
       self.strategy = EmbedResponse()
 

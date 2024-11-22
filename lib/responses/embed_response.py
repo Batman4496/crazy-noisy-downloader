@@ -8,4 +8,5 @@ class EmbedResponse(IFileResponse):
     await interaction.message.edit("Uploading file...")
     filename = '-'.join(file.title.split('-')[1:]) + f'.{file.extension}'
     f = discord.File(file.path)
-    await interaction.message.edit(content=f"Downloaded: {filename}", file=f)
+    await interaction.message.edit(content="File Uploaded!")
+    await interaction.channel.send(content=f"Downloaded: {filename}", file=f)

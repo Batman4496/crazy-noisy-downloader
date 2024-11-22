@@ -1,3 +1,4 @@
+import asyncio
 from yt_dlp import YoutubeDL
 from lib.classes.idriver import IDriver
 from lib.classes import DownloadFile, DownloadInfo, DownloadFormat
@@ -8,7 +9,7 @@ class YTDLPDriver(IDriver):
   
   async def get_info(self, url):
     downloader = YoutubeDL()
-    info = downloader.extract_info(url, download=False)
+    info = await asyncio.to_thread(lambda: downloader.extract_info(url, download=False))
 
     formats = [
       DownloadFormat(format='default', is_video=True)
@@ -62,7 +63,7 @@ class YTDLPDriver(IDriver):
       options['format'] = f"bestvideo+bestaudio"
 
     downloader = YoutubeDL(options)    
-    downloader.download(url)
+    await asyncio.to_thread(lambda: downloader.download(url))
     file = Storage().get_file(name)
 
     return DownloadFile(
